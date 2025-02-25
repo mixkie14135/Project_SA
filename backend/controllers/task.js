@@ -1,5 +1,8 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { createNotification } = require('./notificationController'); // ✅ เพิ่มการนำเข้า notificationController.js
+
+
 
 // ✅ Insert a new task
 const createTask = async (req, res) => {
@@ -16,6 +19,10 @@ const createTask = async (req, res) => {
                 due_date
             }
         });
+
+        // ✅ สร้างการแจ้งเตือนเมื่อมีการเพิ่มงานใหม่
+        await createNotification(user_id, task.task_id, `คุณได้สร้างงานใหม่: ${title}`);
+        
         res.status(200).json({
             status: "ok",
             message: `Task with id ${task.task_id} created successfully`,
