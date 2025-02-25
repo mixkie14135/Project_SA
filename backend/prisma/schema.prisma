@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model categories {
+  category_id   Int       @id @default(autoincrement())
+  category_name String    @unique @db.VarChar(255)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime? @default(now()) @updatedAt @db.Timestamp(0)
+  tasks         tasks[]
+}
+
+model priority {
+  priority_id Int       @id @default(autoincrement())
+  priority    String    @unique @db.VarChar(50)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime? @default(now()) @updatedAt @db.Timestamp(0)
+  tasks       tasks[]
+}
+
+model status {
+  status_id  Int       @id @default(autoincrement())
+  status     String    @unique @db.VarChar(50)
+  created_at DateTime  @default(now())
+  updated_at DateTime? @default(now()) @updatedAt @db.Timestamp(0)
+  tasks      tasks[]
+}
+
+model tasks {
+  task_id     Int        @id @default(autoincrement())
+  title       String     @db.VarChar(255)
+  description String?    @db.Text
+  user_id     Int
+  category_id Int
+  status_id   Int
+  priority_id Int
+  due_date    DateTime?
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+  categories  categories @relation(fields: [category_id], references: [category_id], map: "fk_category")
+  priority    priority   @relation(fields: [priority_id], references: [priority_id], map: "fk_priority")
+  status      status     @relation(fields: [status_id], references: [status_id], map: "fk_status")
+  users       users      @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "fk_user")
+
+  @@index([category_id], map: "fk_category")
+  @@index([priority_id], map: "fk_priority")
+  @@index([status_id], map: "fk_status")
+  @@index([user_id], map: "fk_user")
+}
+
+model users {
+  user_id    Int      @id @default(autoincrement())
+  email      String   @unique(map: "email") @db.VarChar(255)
+  password   String   @db.VarChar(255)
+  username   String   @db.VarChar(100)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  tasks      tasks[]
+}
