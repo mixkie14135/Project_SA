@@ -8,7 +8,6 @@ const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 console.log("JWT_SECRET from .env:", JWT_SECRET);
 
-
 // ✅ ลงทะเบียนผู้ใช้ใหม่
 exports.register = async (req, res) => {
   try {
@@ -38,6 +37,31 @@ exports.login = async (req, res) => {
     const token = jwt.sign({ userId: user.user_id }, JWT_SECRET, { expiresIn: "7d" });
 
     res.json({ token, user: { id: user.user_id, username: user.username, email: user.email } });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ✅ เพิ่ม API GET เพื่อดึงข้อมูลผู้ใช้ที่ล็อกอินอยู่
+exports.getUser = async (req, res) => {
+  try {
+    // ใช้ JWT token ที่ส่งมาจาก Authorization header
+    const token = req.headers.authorization.split(" ")[1]; // "Bearer <token>"
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    // ตรวจสอบ token และดึงข้อมูลผู้ใช้จาก token
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await prisma.users.findUnique({
+      where: { user_id: decoded.userId }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({ username: user.username, email: user.email }); // ส่งกลับชื่อผู้ใช้และอีเมล
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

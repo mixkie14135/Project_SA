@@ -1,0 +1,36 @@
+@import './base.css';
+
+/* ✅ ทำให้ #app เต็มจอและไม่โดนบีบ */
+#app {
+  max-width: 100%;  
+  margin: 0 auto;
+  padding: 0; 
+  font-weight: normal;
+  display: flex; /* ✅ ใช้ flexbox เพื่อให้ขยายเต็มจอ */
+  flex-direction: column;
+  min-height: 100vh; /* ✅ ความสูงเต็มหน้าจอ */
+}
+
+/* ✅ ลบ grid ที่ทำให้ Layout เพี้ยน */
+@media (min-width: 1024px) {
+  body {
+    display: block;
+  }
+
+  #app {
+    display: flex; /* ✅ ใช้ flexbox */
+    flex-direction: column;
+    padding: 0;
+  }
+}
+
+/* ✅ ทำให้ body และ html ขยายเต็มหน้าจอ */
+body, html {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #f9f6c3; /* ✅ ให้สีพื้นหลังเต็มหน้าเว็บ */
+  display: flex;
+  flex-direction: column;
+}
