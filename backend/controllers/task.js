@@ -1,6 +1,8 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { createNotification } = require('./notificationController'); // ✅ เพิ่มการนำเข้า notificationController.js
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET; // อ่านจาก env
 
 // ✅ Insert a new task
 const createTask = async (req, res) => {
@@ -34,15 +36,27 @@ const createTask = async (req, res) => {
   }
 };
 
-// ✅ Get all tasks
+// Get tasks for a logged-in user
 const getTasks = async (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1]; // แยก "Bearer token"
+
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
   try {
-    const tasks = await prisma.tasks.findMany();
-    res.status(200).json(tasks);
+    const decoded = jwt.verify(token, JWT_SECRET); // ตรวจสอบ token
+    const tasks = await prisma.tasks.findMany({
+      where: { user_id: decoded.userId }, // ใช้ decoded.userId เพื่อกรองข้อมูล
+    });
+    res.status(200).json(tasks); // ส่งข้อมูลงานที่กรองมาแล้ว
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+
 
 // ✅ Get a single task by id
 const getTask = async (req, res) => {

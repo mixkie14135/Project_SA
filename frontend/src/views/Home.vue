@@ -52,7 +52,7 @@ export default {
   data() {
     return {
       username: "",  // เก็บชื่อผู้ใช้ที่ดึงจาก API
-      tasks: [],
+      tasks: [],      // เก็บข้อมูล task ที่ดึงมา
       tasksPerPage: 6,
       currentPage: 1,
       currentDate: new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
@@ -71,53 +71,69 @@ export default {
     }
   },
   methods: {
+    // ✅ Fetch tasks for the logged-in user
     async fetchTasks() {
-      try {
-        const response = await fetch('http://localhost:8800/api/tasks');
-        const data = await response.json();
-        this.tasks = data;
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-      }
-    },
+  const token = localStorage.getItem("authToken"); // ดึง token จาก localStorage
+  if (!token) {
+    console.error("No token found");
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:8800/api/tasks', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,  // ส่ง token ไปใน header
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch tasks');
+    }
+
+    const data = await response.json();
+    this.tasks = data;
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+  }
+},
+
+
+    // ✅ Fetch user info (username)
     async fetchUserName() {
-      // ดึง token จาก localStorage
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken');  // ดึง token จาก localStorage
 
       if (!token) {
         return;
       }
 
       try {
-        // เรียก API ที่ดึงข้อมูลผู้ใช้
         const response = await fetch('http://localhost:8800/api/auth/me', {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`, // ส่ง token ใน header
+            'Authorization': `Bearer ${token}`,  // ส่ง JWT token ไปใน header
             'Content-Type': 'application/json',
           },
         });
 
         const data = await response.json();
-        this.username = data.username; // แสดงชื่อผู้ใช้จาก API
+        this.username = data.username;  // แสดงชื่อผู้ใช้จาก API
       } catch (error) {
         console.error("Error fetching username:", error);
       }
     },
+
     goToTaskDetail(taskId) {
-      this.$router.push(`/tasks/${taskId}`); // เปลี่ยนเส้นทางไปที่ TaskDetail พร้อมส่ง task_id
+      this.$router.push(`/tasks/${taskId}`);  // ไปที่หน้ารายละเอียดงาน
     },
-    goToDashboard() {
-      this.$router.push('/dashboard');
-    },
-    goToCreateTask() {
-      this.$router.push('/tasks/create');
-    },
+
     nextPage() {
       if (this.currentPage < this.totalPages) {
         this.currentPage++;
       }
     },
+
     prevPage() {
       if (this.currentPage > 1) {
         this.currentPage--;
@@ -125,10 +141,11 @@ export default {
     }
   },
   mounted() {
-    this.fetchTasks();
+    this.fetchTasks();  // เรียกฟังก์ชันนี้เพื่อดึงข้อมูลงาน
     this.fetchUserName();  // เรียกฟังก์ชันนี้เพื่อดึงข้อมูลผู้ใช้จาก API
   }
 };
+
 </script>
 
 <style scoped>
