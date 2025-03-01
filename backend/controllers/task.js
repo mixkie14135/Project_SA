@@ -6,13 +6,30 @@ const JWT_SECRET = process.env.JWT_SECRET; // อ่านจาก env
 
 // ✅ Insert a new task
 const createTask = async (req, res) => {
-  const { title, description, user_id, category_id, status_id, priority_id, due_date } = req.body;
+  const { title, description, category_id, status_id, priority_id, due_date } = req.body;
+  
+  // ดึง token จาก headers
+  const token = req.headers['authorization']?.split(' ')[1]; // "Bearer token"
+
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
   try {
+    // ตรวจสอบ token และดึงข้อมูล user_id จาก token
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user_id = decoded.userId;
+
+    if (!user_id) {
+      return res.status(400).json({ message: 'User not found' });
+    }
+
+    // สร้าง task
     const task = await prisma.tasks.create({
       data: {
         title,
         description,
-        user_id,
+        user_id,  // ใช้ user_id ที่ได้จาก token
         category_id,
         status_id,
         priority_id,
