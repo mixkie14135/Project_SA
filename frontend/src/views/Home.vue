@@ -7,9 +7,9 @@
         <button @click="goToDashboard">Dashboard</button>
         <button class="create-btn" @click="goToCreateTask">Create</button>
         <input type="text" placeholder="Search" class="search-bar">
-        <button class="icon-btn">🏠</button>
+        <button class="icon-btn" @click="goToHome">🏠</button> <!-- เพิ่มปุ่ม Home -->
         <button class="icon-btn">🔔</button>
-        <button class="icon-btn">👤</button>
+        <button class="icon-btn" @click="goToProfile">👤</button> <!-- เปลี่ยนเส้นทางไปที่หน้า Profile -->
       </div>
     </nav>
 
@@ -71,6 +71,7 @@ export default {
     }
   },
   methods: {
+    
   // ✅ Fetch tasks for the logged-in user
   async fetchTasks() {
     const token = localStorage.getItem("authToken"); // ดึง token จาก localStorage
@@ -175,6 +176,17 @@ export default {
   goToTaskDetail(taskId) {
     this.$router.push(`/tasks/${taskId}`);  // ไปที่หน้ารายละเอียดงาน
   },
+
+  goToProfile() {
+    this.$router.push('/profile');  // ✅ เปลี่ยนเส้นทางไปที่หน้า Profile
+  },
+
+  // ฟังก์ชันสำหรับกลับไปหน้า Home
+  goToHome() {
+      console.log('Navigating to Home');  // เพิ่ม log เพื่อทดสอบ
+      this.$router.push('/home');
+    },
+  
 
   nextPage() {
     if (this.currentPage < this.totalPages) {
@@ -336,6 +348,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 15px;
+  margin-right: 50px;
 }
 
 /* ตั้งค่า font-family สำหรับทั้งเว็บไซต์ */

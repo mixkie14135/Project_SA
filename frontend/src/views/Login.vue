@@ -49,8 +49,15 @@ export default {
         console.error(error);
       }
     }
+  },
+  mounted() {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      this.$router.push('/home'); // ถ้ามี token ให้ไปที่หน้า home
+    }
   }
 };
+
 </script>
 
 <style>

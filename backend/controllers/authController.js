@@ -66,3 +66,35 @@ exports.getUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// เพิ่มฟังก์ชันแก้ไข username ใน authController.js
+exports.updateUsername = async (req, res) => {
+  try {
+    const { username } = req.body;
+
+    // ตรวจสอบว่า username ที่ส่งมาคือค่าว่างหรือไม่
+    if (!username || username.trim() === "") {
+      return res.status(400).json({ error: "Username cannot be empty" }); // ส่ง error ถ้าเป็นค่าว่าง
+    }
+
+    const token = req.headers.authorization.split(" ")[1]; // "Bearer <token>"
+
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await prisma.users.update({
+      where: { user_id: decoded.userId },
+      data: { username: username },  // อัปเดต username
+    });
+
+    res.json({ message: "Username updated successfully!", username: user.username });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
+
