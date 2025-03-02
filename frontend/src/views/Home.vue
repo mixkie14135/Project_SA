@@ -8,7 +8,7 @@
         <button class="create-btn" @click="goToCreateTask">Create</button>
         <input type="text" placeholder="Search" class="search-bar">
         <button class="icon-btn" @click="goToHome">🏠</button> <!-- เพิ่มปุ่ม Home -->
-        <button class="icon-btn">🔔</button>
+        <button class="icon-btn" @click="goToNotifications">🔔</button>
         <button class="icon-btn" @click="goToProfile">👤</button> <!-- เปลี่ยนเส้นทางไปที่หน้า Profile -->
       </div>
     </nav>
@@ -186,6 +186,10 @@ export default {
       console.log('Navigating to Home');  // เพิ่ม log เพื่อทดสอบ
       this.$router.push('/home');
     },
+
+  goToNotifications() {
+    this.$router.push('/notifications');  // ✅ เปลี่ยนเส้นทางไปที่หน้า Notifications
+  },
   
 
   nextPage() {

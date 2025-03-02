@@ -6,6 +6,7 @@ import TaskDetail from '../views/TaskDetail.vue';
 import EditTask from '../views/EditTask.vue';
 import CreateTask from '../views/CreateTask.vue';
 import Profile from '../views/Profile.vue'; // เพิ่มหน้า Profile
+import Notifications from '../views/Notifications.vue'; // เพิ่มหน้า Notifications
 
 const routes = [
   { path: '/', component: Login },
@@ -14,7 +15,8 @@ const routes = [
   { path: '/tasks/:id', component: TaskDetail },
   { path: '/tasks/edit/:id', component: EditTask },
   { path: '/tasks/create', component: CreateTask },
-  { path: '/profile', component: Profile } // เพิ่มหน้าโปรไฟล์
+  { path: '/profile', component: Profile }, // เพิ่มหน้าโปรไฟล์
+  { path: '/notifications', component: Notifications }  // เพิ่มเส้นทางนี้
 ];
 
 const router = createRouter({
