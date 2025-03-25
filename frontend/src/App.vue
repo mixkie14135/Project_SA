@@ -1,20 +1,32 @@
 <script setup>
-import { RouterView } from 'vue-router';
+import { RouterView, useRoute } from 'vue-router';
+
+const route = useRoute();  // ใช้ useRoute เพื่อตรวจสอบเส้นทาง (route)
 </script>
 
 <template>
-  <div id="app">
+  <!-- เพิ่ม class ที่แตกต่างกันสำหรับหน้าแต่ละหน้า -->
+  <div :class="['app-container', route.name]">
     <RouterView />
   </div>
 </template>
 
 <style scoped>
-/* ✅ ตั้งค่าให้เต็มจอ */
-#app {
+/* สไตล์ที่ใช้ทั่วทั้งแอป */
+.app-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: 'Kanit', sans-serif;
+}
+
+.login, .register {
+  /* หน้า login, register จะจัดเต็มหน้าจอ */
   height: 100vh;
-  background: #f9f6c3;
+  width: 100vw;
+  background: #f6f5f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

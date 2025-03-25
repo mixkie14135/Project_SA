@@ -1,45 +1,26 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { createNotification } = require('./notificationController'); // ✅ เพิ่มการนำเข้า notificationController.js
+const { createNotification } = require('./notificationController'); 
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET; // อ่านจาก env
-
-// ✅ Insert a new task
+const JWT_SECRET = process.env.JWT_SECRET; 
 const createTask = async (req, res) => {
   const { title, description, category_id, status_id, priority_id, due_date } = req.body;
-  
-  // ดึง token จาก headers
-  const token = req.headers['authorization']?.split(' ')[1]; // "Bearer token"
+
+  const token = req.headers['authorization']?.split(' ')[1]; 
 
   if (!token) {
     return res.status(401).json({ message: 'No token provided' });
   }
-
   try {
-    // ตรวจสอบ token และดึงข้อมูล user_id จาก token
     const decoded = jwt.verify(token, JWT_SECRET);
     const user_id = decoded.userId;
 
     if (!user_id) {
       return res.status(400).json({ message: 'User not found' });
     }
-
-    // สร้าง task
     const task = await prisma.tasks.create({
-      data: {
-        title,
-        description,
-        user_id,  // ใช้ user_id ที่ได้จาก token
-        category_id,
-        status_id,
-        priority_id,
-        due_date
-      }
-    });
-
-    // ✅ สร้างการแจ้งเตือนเมื่อมีการเพิ่มงานใหม่
+      data: {title, description, user_id, category_id, status_id, priority_id, due_date}});
     await createNotification(user_id, task.task_id, `คุณได้สร้างงานใหม่: ${title}`);
-    
     res.status(200).json({
       status: "ok",
       message: `Task with id ${task.task_id} created successfully`,
@@ -52,39 +33,30 @@ const createTask = async (req, res) => {
     });
   }
 };
-
-// Get tasks for a logged-in user
 const getTasks = async (req, res) => {
-  const token = req.headers['authorization']?.split(' ')[1]; // แยก "Bearer token"
-
+  const token = req.headers['authorization']?.split(' ')[1]; 
   if (!token) {
     return res.status(401).json({ message: 'No token provided' });
   }
-
   try {
-    const decoded = jwt.verify(token, JWT_SECRET); // ตรวจสอบ token
+    const decoded = jwt.verify(token, JWT_SECRET); 
     const tasks = await prisma.tasks.findMany({
-      where: { user_id: decoded.userId }, // ใช้ decoded.userId เพื่อกรองข้อมูล
+      where: { user_id: decoded.userId }, 
     });
-    res.status(200).json(tasks); // ส่งข้อมูลงานที่กรองมาแล้ว
+    res.status(200).json(tasks); 
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-
-
-
-
-// ✅ Get a single task by id
 const getTask = async (req, res) => {
   const id = req.params.id;
   try {
     const task = await prisma.tasks.findUnique({
       where: { task_id: Number(id) },
-      include: { // ใช้ include เพื่อนำข้อมูลที่เกี่ยวข้องมาด้วย
-        categories: true, // รวมข้อมูลจากตาราง categories
-        status: true, // รวมข้อมูลจากตาราง status
-        priority: true, // รวมข้อมูลจากตาราง priority
+      include: { 
+        categories: true, 
+        status: true, 
+        priority: true, 
       },
     });
 
@@ -92,19 +64,17 @@ const getTask = async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    // ส่งข้อมูล task พร้อมข้อมูลที่รวมจากตารางที่เกี่ยวข้อง
     res.status(200).json({
       ...task,
-      category_name: task.categories.category_name, // แปลง ID ไปเป็นชื่อ category
-      status_name: task.status.status, // แปลง ID ไปเป็นชื่อ status
-      priority_name: task.priority.priority, // แปลง ID ไปเป็นชื่อ priority
+      category_name: task.categories.category_name, 
+      status_name: task.status.status, 
+      priority_name: task.priority.priority, 
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// ✅ Delete a task
 const deleteTask = async (req, res) => {
   const id = req.params.id;
   try {
@@ -120,8 +90,6 @@ const deleteTask = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-// ✅ Update a task
 const updateTask = async (req, res) => {
   const { id } = req.params;
   const { title, description, user_id, category_id, status_id, priority_id, due_date } = req.body;
@@ -153,44 +121,29 @@ const updateTask = async (req, res) => {
     }
   }
 };
-
-// ฟังก์ชันเพื่อดึง Categories
 const getCategories = async (req, res) => {
   try {
-    const categories = await prisma.categories.findMany();  // ดึงข้อมูลจากฐานข้อมูล
-    res.status(200).json(categories);  // ส่งข้อมูลกลับ
+    const categories = await prisma.categories.findMany();  
+    res.status(200).json(categories);  
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// ฟังก์ชันเพื่อดึง Statuses
 const getStatuses = async (req, res) => {
   try {
-    const statuses = await prisma.status.findMany();  // ดึงข้อมูลจากฐานข้อมูล
-    res.status(200).json(statuses);  // ส่งข้อมูลกลับ
+    const statuses = await prisma.status.findMany();  
+    res.status(200).json(statuses);  
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
-
-// ฟังก์ชันเพื่อดึง Priorities
 const getPriorities = async (req, res) => {
   try {
-    const priorities = await prisma.priority.findMany();  // ดึงข้อมูลจากฐานข้อมูล
-    res.status(200).json(priorities);  // ส่งข้อมูลกลับ
+    const priorities = await prisma.priority.findMany();  
+    res.status(200).json(priorities);  
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
-
-module.exports = { 
-  createTask, 
-  getTasks, 
-  getTask, 
-  deleteTask, 
-  updateTask, 
-  getCategories, 
-  getStatuses, 
-  getPriorities 
-};
+module.exports = { createTask, getTasks, getTask, deleteTask, updateTask, getCategories, getStatuses, getPriorities };

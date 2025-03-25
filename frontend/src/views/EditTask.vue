@@ -4,25 +4,18 @@
         <h2>Edit Task</h2>
         <div v-if="task">
           <form @submit.prevent="submitForm">
-            <!-- Title -->
             <div>
               <label for="title">Title:</label>
               <input v-model="task.title" type="text" id="title" placeholder="Enter task title" required />
             </div>
-  
-            <!-- Description -->
             <div>
               <label for="description">Description:</label>
               <textarea v-model="task.description" id="description" placeholder="Enter task description" required></textarea>
             </div>
-  
-            <!-- Due Date -->
             <div>
               <label for="due_date">Due Date:</label>
               <input v-model="task.due_date" type="date" id="due_date" required />
             </div>
-  
-            <!-- Priority -->
             <div>
               <label for="priority">Priority:</label>
               <select v-model="task.priority_id" id="priority" required>
@@ -31,8 +24,6 @@
                 </option>
               </select>
             </div>
-  
-            <!-- Category -->
             <div>
               <label for="category">Category:</label>
               <select v-model="task.category_id" id="category" required>
@@ -41,8 +32,6 @@
                 </option>
               </select>
             </div>
-  
-            <!-- Status -->
             <div>
               <label for="status">Status:</label>
               <select v-model="task.status_id" id="status" required>
@@ -51,8 +40,6 @@
                 </option>
               </select>
             </div>
-  
-            <!-- Submit Button -->
             <button type="submit">Update Task</button>
           </form>
         </div>
@@ -67,57 +54,50 @@
   export default {
     data() {
       return {
-        task: null, // เก็บข้อมูลของงานที่ต้องการแก้ไข
-        categories: [], // เก็บข้อมูลหมวดหมู่
-        statuses: [], // เก็บข้อมูลสถานะ
-        priorities: [], // เก็บข้อมูลระดับความสำคัญ
+        task: null, 
+        categories: [], 
+        statuses: [], 
+        priorities: [], 
       };
     },
     methods: {
-      // ฟังก์ชันดึงข้อมูลของ task ที่จะทำการแก้ไข
       async fetchTaskDetails() {
         const taskId = this.$route.params.id;
         try {
           const response = await fetch(`http://localhost:8800/api/tasks/${taskId}`);
           const data = await response.json();
-          this.task = data; // เก็บข้อมูลที่ได้จาก API
-          console.log("Task data:", this.task);  // ดูข้อมูล task ที่ได้
+          this.task = data; 
+          console.log("Task data:", this.task);  
         } catch (error) {
           console.error("Error fetching task details:", error);
         }
       },
-  
-      // ฟังก์ชันดึงข้อมูลของ categories
       async fetchCategories() {
         try {
           const response = await fetch("http://localhost:8800/api/categories");
           const data = await response.json();
-          this.categories = data; // เก็บข้อมูลจาก categories
-          console.log("Categories:", this.categories);  // ตรวจสอบค่าที่ดึงมา
+          this.categories = data; 
+          console.log("Categories:", this.categories);  
         } catch (error) {
           console.error("Error fetching categories:", error);
         }
       },
-  
-      // ฟังก์ชันดึงข้อมูลของ statuses
       async fetchStatuses() {
         try {
           const response = await fetch("http://localhost:8800/api/status");
           const data = await response.json();
-          this.statuses = data; // เก็บข้อมูลจาก status
-          console.log("Statuses:", this.statuses);  // ตรวจสอบค่าที่ดึงมา
+          this.statuses = data; 
+          console.log("Statuses:", this.statuses);  
         } catch (error) {
           console.error("Error fetching statuses:", error);
         }
       },
-  
-      // ฟังก์ชันดึงข้อมูลของ priorities
       async fetchPriorities() {
         try {
           const response = await fetch("http://localhost:8800/api/priority");
           const data = await response.json();
-          this.priorities = data; // เก็บข้อมูลจาก priority
-          console.log("Priorities:", this.priorities);  // ตรวจสอบค่าที่ดึงมา
+          this.priorities = data; 
+          console.log("Priorities:", this.priorities);  
         } catch (error) {
           console.error("Error fetching priorities:", error);
         }
@@ -125,10 +105,8 @@
   
       async submitForm() {
   const taskId = this.$route.params.id;
-
-  // แปลงวันที่ให้เป็นรูปแบบ ISO 8601 (รวมเวลา)
   const formattedDate = new Date(this.task.due_date).toISOString();
-  this.task.due_date = formattedDate; // อัปเดต task.due_date ด้วยวันที่ที่แปลงแล้ว
+  this.task.due_date = formattedDate; 
 
   try {
     const response = await fetch(`http://localhost:8800/api/tasks/${taskId}`, {
@@ -136,13 +114,12 @@
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(this.task),  // ส่งข้อมูลที่มีการแก้ไขไป
+      body: JSON.stringify(this.task),  
     });
-
     const data = await response.json();
     if (response.ok) {
       alert("Task updated successfully!");
-      this.$router.push(`/tasks/${taskId}`); // กลับไปที่หน้า task details
+      this.$router.push(`/tasks/${taskId}`); 
     } else {
       alert(data.error || "Failed to update task");
     }
@@ -152,7 +129,6 @@
   }
 }
 },
-  
     mounted() {
       this.fetchTaskDetails();
       this.fetchCategories();
@@ -163,7 +139,6 @@
   </script>
   
   <style scoped>
-  /* เพิ่มสไตล์สำหรับ Edit Task */
   .edit-task-container {
     display: flex;
     justify-content: center;
@@ -194,11 +169,11 @@
     margin-top: 5px;
     border-radius: 5px;
     border: 1px solid #ddd;
-    width: 100%;  /* เพิ่มความกว้างเต็มที่ */
+    width: 100%;  
   }
   
   select {
-    font-size: 16px; /* เพิ่มขนาดฟอนต์ใน select */
+    font-size: 16px; 
   }
   
   button {

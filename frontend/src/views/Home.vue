@@ -1,39 +1,37 @@
 <template>
   <div class="home-container">
-    <!-- ✅ Navbar -->
-    <nav class="navbar">
+    <!-- Sidebar -->
+    <div class="sidebar">
       <div class="logo">My Task List</div>
-      <div class="nav-links">
-        <button @click="goToDashboard">Dashboard</button>
-        <button class="create-btn" @click="goToCreateTask">Create</button>
-        <input type="text" placeholder="Search" class="search-bar">
-        <button class="icon-btn" @click="goToHome">🏠</button> <!-- เพิ่มปุ่ม Home -->
-        <button class="icon-btn" @click="goToNotifications">🔔</button>
-        <button class="icon-btn" @click="goToProfile">👤</button> <!-- เปลี่ยนเส้นทางไปที่หน้า Profile -->
-      </div>
-    </nav>
+      <ul class="menu">
+        <li @click="goToHome">Dashboard</li>
+        <li @click="goToCreateTask">Tasks</li>
+        <li @click="goToNotifications">Notifications</li>
+        <li @click="goToProfile">Profile</li>
+      </ul>
+    </div>
 
-    <!-- ✅ Content Wrapper -->
+    <!-- Main Content -->
     <div class="content-wrapper">
-      <!-- ✅ Header -->
       <div class="header">
         <h2>{{ currentDate }}</h2>
-        <h3>Hello, {{ username }}</h3> <!-- แสดงชื่อผู้ใช้จาก API -->
+        <h3>Hello, {{ username }}</h3>
       </div>
 
-      <!-- ✅ Task List -->
+      <!-- Task Section -->
       <div class="task-section">
-        <h3>Task List</h3>
+        <div class="task-header">
+          <h3>Task List</h3>
+          <button @click="goToCreateTask" class="add-task-btn">+ Add Task</button>
+        </div>
         <div class="task-grid">
           <div v-for="task in paginatedTasks" :key="task.task_id" class="task-card" @click="goToTaskDetail(task.task_id)">
             <h4>{{ task.title }}</h4>
             <img src="https://cdn-icons-png.flaticon.com/128/7626/7626168.png" alt="Task Icon">
+            <div class="task-status" :class="task.status">{{ task.status }}</div>
           </div>
-          <!-- ✅ เติม Block เปล่าให้ Grid สมดุล -->
-          <div v-for="n in emptySlots" :key="'empty-' + n" class="task-card empty-card"></div>
         </div>
-
-        <!-- ✅ Pagination -->
+        <!-- Pagination -->
         <div class="pagination">
           <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
           <span>Page {{ currentPage }} of {{ totalPages }}</span>
@@ -41,9 +39,6 @@
         </div>
       </div>
     </div>
-
-    <!-- ✅ Footer -->
-    <footer class="footer">© 2025 My Task List | วางแผนทุกวัน จัดการทุกเป้าหมาย</footer>
   </div>
 </template>
 
@@ -51,8 +46,8 @@
 export default {
   data() {
     return {
-      username: "",  // เก็บชื่อผู้ใช้ที่ดึงจาก API
-      tasks: [],      // เก็บข้อมูล task ที่ดึงมา
+      username: "",  
+      tasks: [],    
       tasksPerPage: 6,
       currentPage: 1,
       currentDate: new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
@@ -66,251 +61,156 @@ export default {
     totalPages() {
       return Math.ceil(this.tasks.length / this.tasksPerPage);
     },
-    emptySlots() {
-      return this.tasksPerPage - this.paginatedTasks.length;
-    }
   },
   methods: {
-    
-  // ✅ Fetch tasks for the logged-in user
-  async fetchTasks() {
-    const token = localStorage.getItem("authToken"); // ดึง token จาก localStorage
-    if (!token) {
-      console.error("No token found");
-      return;
-    }
-
-    try {
-      const response = await fetch('http://localhost:8800/api/tasks', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,  // ส่ง token ไปใน header
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch tasks');
+    async fetchTasks() {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        console.error("No token found");
+        return;
       }
-
-      const data = await response.json();
-      this.tasks = data;
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-    }
-  },
-
-  // ✅ Fetch user info (username)
-  async fetchUserName() {
-    const token = localStorage.getItem('authToken');  // ดึง token จาก localStorage
-
-    if (!token) {
-      return;
-    }
-
-    try {
-      const response = await fetch('http://localhost:8800/api/auth/me', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,  // ส่ง JWT token ไปใน header
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
-      this.username = data.username;  // แสดงชื่อผู้ใช้จาก API
-    } catch (error) {
-      console.error("Error fetching username:", error);
-    }
-  },
-
-  async createTask() {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      alert("No token found");
-      return;
-    }
-
-    // ดึง user_id จาก token
-    const decoded = jwt.decode(token);
-    const userId = decoded?.userId;  // ตรวจสอบ userId จาก token
-
-    const taskData = {
-      title: this.task.title,
-      description: this.task.description,
-      user_id: userId,  // ส่ง user_id ที่ได้จาก decoded token
-      category_id: this.task.category_id,
-      status_id: this.task.status_id,
-      priority_id: this.task.priority_id,
-      due_date: this.task.due_date
-    };
-
-    try {
-      const response = await fetch('http://localhost:8800/api/tasks', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(taskData)
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        alert("Task created successfully!");
-        this.$router.push("/home");
-      } else {
-        alert(data.error || "Failed to create task");
+      try {
+        const response = await fetch('http://localhost:8800/api/tasks', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch tasks');
+        }
+        const data = await response.json();
+        this.tasks = data;
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
       }
-    } catch (error) {
-      console.error("Error creating task:", error);
-    }
-  },
-
-
-  // ✅ ฟังก์ชันสำหรับเปลี่ยนเส้นทางไปยังหน้า CreateTask
-  goToCreateTask() {
-    this.$router.push('/tasks/create'); // ใช้ push เพื่อเปลี่ยนเส้นทางไปหน้า CreateTask
-  },
-
-  goToTaskDetail(taskId) {
-    this.$router.push(`/tasks/${taskId}`);  // ไปที่หน้ารายละเอียดงาน
-  },
-
-  goToProfile() {
-    this.$router.push('/profile');  // ✅ เปลี่ยนเส้นทางไปที่หน้า Profile
-  },
-
-  // ฟังก์ชันสำหรับกลับไปหน้า Home
-  goToHome() {
-      console.log('Navigating to Home');  // เพิ่ม log เพื่อทดสอบ
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+      }
+    },
+    prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+      }
+    },
+    goToCreateTask() {
+      this.$router.push('/tasks/create');
+    },
+    goToTaskDetail(taskId) {
+      this.$router.push(`/tasks/${taskId}`);
+    },
+    goToProfile() {
+      this.$router.push('/profile');
+    },
+    goToHome() {
       this.$router.push('/home');
     },
-
-  goToNotifications() {
-    this.$router.push('/notifications');  // ✅ เปลี่ยนเส้นทางไปที่หน้า Notifications
+    goToNotifications() {
+      this.$router.push('/notifications');
+    },
   },
-  
-
-  nextPage() {
-    if (this.currentPage < this.totalPages) {
-      this.currentPage++;
-    }
-  },
-
-  prevPage() {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-    }
-  }
-},
-
   mounted() {
-    this.fetchTasks();  // เรียกฟังก์ชันนี้เพื่อดึงข้อมูลงาน
-    this.fetchUserName();  // เรียกฟังก์ชันนี้เพื่อดึงข้อมูลผู้ใช้จาก API
+    this.fetchTasks();
   }
 };
-
 </script>
 
 <style scoped>
-/* ✅ ตั้งค่า Layout หลัก */
-
+/* Layout Styles */
 .home-container {
-  font-family: Arial, sans-serif;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   min-height: 100vh;
-  background: #f9f6c3;
-  width: 100%;
-  position: relative;
-  padding-top: 80px;
-  padding-bottom: 120px; /* ✅ ป้องกันไม่ให้ Footer ทับ Pagination */
 }
 
-/* ✅ จัดเนื้อหาให้อยู่กึ่งกลาง */
+.sidebar {
+  width: 250px;
+  background-color: #2c3e50;
+  color: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar .logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.menu {
+  list-style: none;
+  padding: 0;
+}
+
+.menu li {
+  padding: 15px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.menu li:hover {
+  background-color: #34495e;
+}
+
 .content-wrapper {
-  width: 80%;
-  max-width: 900px; /* ✅ ลดขนาดให้พอดี */
-  margin: 0 auto;
-  text-align: center;
-  padding-top: 80px; /* ✅ ป้องกัน Header ถูก Navbar บัง */
+  flex-grow: 1;
+  padding: 20px;
+  background-color: #ecf0f1;
+  margin-left: 20px; /* To ensure the content doesn't get overlapped by the sidebar */
 }
 
 .header {
-  margin-top: 80px; /* เพิ่ม margin-top เพื่อให้ header เลื่อนลง */
+  margin-bottom: 20px;
+  text-align: center;
 }
 
-/* ✅ Navbar */
-.navbar {
-  width: 100%;
-  background: #f9e267;
-  padding: 15px 20px;
+.task-section {
+  background-color: white;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.task-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 60px;
-  z-index: 1000;
 }
 
-/* ✅ ปุ่ม Create */
-.create-btn {
-  background: red;
+.add-task-btn {
+  background-color: #ff7f50;
   color: white;
-  padding: 8px 15px;
+  padding: 10px 20px;
   border-radius: 5px;
-  font-size: 14px;
-  font-weight: bold;
   border: none;
   cursor: pointer;
 }
 
-.create-btn:hover {
-  background: darkred;
+.add-task-btn:hover {
+  background-color: #e7663a;
 }
 
-/* ✅ Task List */
-.task-section {
-  width: 100%;
-  max-width: 800px;
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
-  position: relative;  /* ทำให้ pagination อยู่ในกรอบนี้ */
-}
-
-/* ✅ Task Grid */
 .task-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(200px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  min-height: 400px; /* ✅ ลดความสูงของ Task Section */
+  margin-top: 20px;
 }
 
-/* ✅ ปรับขนาด Task Card */
 .task-card {
-  background: #f9e267;
+  background: linear-gradient(135deg, #ff416c, #ff4b2b);  /* สีพื้นหลังที่เป็นการไล่สีชมพู-ส้ม */
   padding: 15px;
   border-radius: 10px;
   text-align: center;
-  transition: transform 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease;
 }
 
 .task-card:hover {
   transform: scale(1.05);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);  /* เพิ่มเงาเมื่อ hover */
 }
 
 .task-card img {
@@ -318,58 +218,42 @@ export default {
   margin-top: 10px;
 }
 
-/* ✅ กรอบเปล่าในหน้าที่มีงานไม่ครบ */
-.empty-card {
-  background: transparent;
-  border: none;
-  visibility: hidden;
+.task-status {
+  font-size: 12px;
+  margin-top: 10px;
+  padding: 5px 10px;
+  border-radius: 5px;
 }
 
-/* ✅ Pagination */
+.task-status.Active {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.task-status.Inactive {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.task-status.OnSale {
+  background-color: #f39c12;
+  color: white;
+}
+
 .pagination {
-  position: absolute;
-  top: 20px;  /* ปรับให้ปุ่มอยู่ด้านบน */
-  right: 20px;   /* ปรับให้ปุ่มอยู่ด้านขวา */
   display: flex;
+  justify-content: center;
   gap: 10px;
-  align-items: center;
+  margin-top: 20px;
 }
 
-/* ✅ Footer */
 .footer {
-  width: 100%;
-  background: #f9e267;
-  padding: 15px 0;
+  background-color: #2c3e50;
+  color: white;
   text-align: center;
-  font-size: 0.9rem;
+  padding: 15px;
   position: absolute;
   bottom: 0;
-  left: 0;
-}
-
-/* ✅ ปรับ Navbar */
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-right: 50px;
-}
-
-/* ตั้งค่า font-family สำหรับทั้งเว็บไซต์ */
-body {
-  font-family: 'Kanit', sans-serif;
-}
-
-/* ✅ Responsive Design */
-@media (max-width: 1024px) {
-  .task-grid {
-    grid-template-columns: repeat(2, minmax(200px, 1fr));
-  }
-}
-
-@media (max-width: 600px) {
-  .task-grid {
-    grid-template-columns: repeat(1, minmax(200px, 1fr));
-  }
+  width: 100%;
 }
 </style>

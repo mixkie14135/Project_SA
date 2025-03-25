@@ -9,7 +9,7 @@ router.get('/tasks/:id', getTask);
 router.put('/tasks/:id', updateTask);
 router.delete('/tasks/:id', deleteTask);
 
-// เพิ่ม API ใหม่ที่ดึงข้อมูล categories, statuses และ priorities
+
 router.get('/categories', getCategories);
 router.get('/status', getStatuses);
 router.get('/priority', getPriorities);
