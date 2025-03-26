@@ -15,7 +15,7 @@
     <div class="content-wrapper">
       <div class="header">
         <h2>Create Task</h2>
-        <h3>Hello, {{ username }}</h3>
+        <h3>Hello, {{ username }}</h3> <!-- แสดงชื่อผู้ใช้ -->
       </div>
 
       <!-- Task Form -->
@@ -83,6 +83,27 @@ export default {
     };
   },
   methods: {
+    async fetchUserInfo() {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+      try {
+        const response = await fetch('http://localhost:8800/api/auth/me', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await response.json();
+        this.username = data.username;
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
+    },
+
     async submitForm() {
       const token = localStorage.getItem("authToken");
       if (!token) {
@@ -121,6 +142,7 @@ export default {
         alert("Failed to create task");
       }
     },
+
     async fetchCategories() {
       try {
         const response = await fetch("http://localhost:8800/api/categories");
@@ -130,6 +152,7 @@ export default {
         console.error("Error fetching categories:", error);
       }
     },
+    
     async fetchStatuses() {
       try {
         const response = await fetch("http://localhost:8800/api/status");
@@ -139,6 +162,7 @@ export default {
         console.error("Error fetching statuses:", error);
       }
     },
+
     async fetchPriorities() {
       try {
         const response = await fetch("http://localhost:8800/api/priority");
@@ -148,7 +172,7 @@ export default {
         console.error("Error fetching priorities:", error);
       }
     },
-    // Navigation methods
+
     goToCreateTask() {
       this.$router.push('/tasks/create');
     },
@@ -169,6 +193,7 @@ export default {
     this.fetchCategories();
     this.fetchStatuses();
     this.fetchPriorities();
+    this.fetchUserInfo();  // ดึงข้อมูล username
   }
 };
 </script>

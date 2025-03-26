@@ -15,7 +15,7 @@
     <div class="content-wrapper">
       <div class="header">
         <h2>{{ currentDate }}</h2>
-        <h3>Hello, {{ username }}</h3>
+        <h3>Hello, {{ username }}</h3> <!-- เพิ่มการแสดงชื่อผู้ใช้ -->
       </div>
 
       <!-- Task Section -->
@@ -46,7 +46,7 @@
 export default {
   data() {
     return {
-      username: "",  
+      username: "",  // เพิ่ม data เพื่อเก็บ username
       tasks: [],    
       tasksPerPage: 6,
       currentPage: 1,
@@ -63,6 +63,26 @@ export default {
     },
   },
   methods: {
+    async fetchUserInfo() {
+      const token = localStorage.getItem('authToken'); // ดึง token จาก localStorage
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+      try {
+        const response = await fetch('http://localhost:8800/api/auth/me', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await response.json();
+        this.username = data.username;  // ดึงข้อมูลชื่อผู้ใช้
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
+    },
     async fetchTasks() {
       const token = localStorage.getItem("authToken");
       if (!token) {
@@ -114,6 +134,7 @@ export default {
   },
   mounted() {
     this.fetchTasks();
+    this.fetchUserInfo(); // เรียกฟังก์ชันเพื่อดึงข้อมูลผู้ใช้
   }
 };
 </script>
